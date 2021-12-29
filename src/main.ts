@@ -27,16 +27,14 @@ async function run(): Promise<void> {
       basehead
     })
 
-    if (comparison.data.status === 'ahead' || comparison.data.status === 'identical') {
+    if (
+      comparison.data.status === 'ahead' ||
+      comparison.data.status === 'identical'
+    ) {
       core.info('Branch is up to date')
     } else {
-      core.info('You are not up to date')
+      throw new Error('Branch is not up to date')
     }
-    // if (['behind', 'dirty'].includes(state.data.mergeable_state)) {
-    //   core.setFailed('You are not up to date')
-    //   return
-    // }
-    // core.info('Branch is up to date')
   } catch (error) {
     core.setFailed(error.message)
   }
