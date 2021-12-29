@@ -11,17 +11,32 @@ async function run(): Promise<void> {
       return
     }
 
-    const state = await github.pulls.get({
+    const state = await github.rest.pulls.get({
       pull_number: context.issue.number,
       owner: context.repo.owner,
       repo: context.repo.repo
     })
 
-    if (['behind', 'dirty'].includes(state.data.mergeable_state)) {
-      core.setFailed('You are not up to date')
-      return
+    const baseBranch = state.data.base.ref
+    const headBranch = state.data.head.ref
+    const basehead = `${baseBranch}...${headBranch}`
+
+    const comparison = await github.rest.repos.compareCommitsWithBasehead({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      basehead
+    })
+
+    if (comparison.data.status === 'ahead' || comparison.data.status === 'identical') {
+      core.info('Branch is up to date')
+    } else {
+      core.info('You are not up to date')
     }
-    core.info('Branch is up to date')
+    // if (['behind', 'dirty'].includes(state.data.mergeable_state)) {
+    //   core.setFailed('You are not up to date')
+    //   return
+    // }
+    // core.info('Branch is up to date')
   } catch (error) {
     core.setFailed(error.message)
   }
